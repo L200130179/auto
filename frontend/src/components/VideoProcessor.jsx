@@ -18,6 +18,7 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [clips, setClips] = useState(null);
+  const [processingMessage, setProcessingMessage] = useState('');
   const progressIntervalRef = React.useRef(null);
 
   const handleSubmit = (e) => {
@@ -27,20 +28,10 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
     setIsProcessing(true);
     setLoadingProgress(0);
     setClips(null);
+    setProcessingMessage('Menghubungkan ke server...');
 
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    progressIntervalRef.current = setInterval(() => {
-      setLoadingProgress(prev => {
-        if (prev >= 99) {
-          clearInterval(progressIntervalRef.current);
-          return 99;
-        }
-        const increment = prev < 40 ? Math.random() * 6 : prev < 75 ? Math.random() * 3 : Math.random() * 0.5;
-        return Math.min(99, prev + increment);
-      });
-    }, 600);
 
-    // Simulate API call using our actual Flask backend
     axios.post('/api/process', { 
       url, 
       with_subtitle: withSubtitle, 
@@ -49,25 +40,62 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
       username: user?.username 
     })
       .then(res => {
-        clearInterval(progressIntervalRef.current);
-        setLoadingProgress(100);
-        
-        if (res.data.new_credits !== undefined) {
-          onUpdateCredits(res.data.new_credits);
+        const taskId = res.data.task_id;
+        if (!taskId) {
+          throw new Error('Server tidak mengembalikan ID pemrosesan.');
         }
+
+        setProcessingMessage('Mengantri di server...');
         
-        setTimeout(() => {
-          setClips(res.data.clips);
-          setIsProcessing(false);
-          setLoadingProgress(0);
-        }, 500);
+        // Start polling status
+        progressIntervalRef.current = setInterval(() => {
+          axios.get(`/api/task/${taskId}`)
+            .then(taskRes => {
+              const { status, progress, message, clips, new_credits, error } = taskRes.data;
+              
+              setLoadingProgress(progress || 0);
+              setProcessingMessage(message || 'Memproses...');
+
+              if (status === 'completed') {
+                clearInterval(progressIntervalRef.current);
+                setLoadingProgress(100);
+                
+                if (new_credits !== undefined) {
+                  onUpdateCredits(new_credits);
+                }
+                
+                setTimeout(() => {
+                  setClips(clips);
+                  setIsProcessing(false);
+                  setLoadingProgress(0);
+                  setProcessingMessage('');
+                }, 500);
+              } else if (status === 'failed') {
+                clearInterval(progressIntervalRef.current);
+                setIsProcessing(false);
+                setLoadingProgress(0);
+                setProcessingMessage('');
+                alert(error || 'Pemrosesan video gagal di server.');
+              }
+            })
+            .catch(pollErr => {
+              console.error('Polling error:', pollErr);
+              if (pollErr.response?.status === 404) {
+                clearInterval(progressIntervalRef.current);
+                setIsProcessing(false);
+                setLoadingProgress(0);
+                setProcessingMessage('');
+                alert('Task tidak ditemukan di server.');
+              }
+            });
+        }, 3000); // Poll every 3 seconds
       })
       .catch(err => {
         console.error(err);
-        clearInterval(progressIntervalRef.current);
         setIsProcessing(false);
         setLoadingProgress(0);
-        const serverError = err.response?.data?.error || 'Terjadi kesalahan saat memproses video.';
+        setProcessingMessage('');
+        const serverError = err.response?.data?.error || err.message || 'Terjadi kesalahan saat memproses video.';
         alert(serverError);
       });
   };
@@ -210,6 +238,9 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
           </div>
           <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
             <div style={{ width: `${loadingProgress}%`, height: '100%', background: 'linear-gradient(90deg, #6366f1, #a855f7)', transition: 'width 0.2s ease-out' }}></div>
+          </div>
+          <div style={{ textAlign: 'center', fontSize: '13px', color: '#a5b4fc', marginTop: '12px', fontWeight: '500', minHeight: '18px', letterSpacing: '0.3px' }}>
+            🚀 {processingMessage}
           </div>
         </div>
       )}

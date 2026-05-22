@@ -684,198 +684,65 @@ def process_video():
         return jsonify({"error": "Kredit Anda habis! Silakan hubungi Admin untuk menambah kredit."}), 403
         
     try:
-        # Step 1: Extract Video Info using yt-dlp
-        ydl_opts = {'quiet': True, 'skip_download': True}
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            
-        # Step 2: Get Transcript
-        fetched_transcript_data = None
-        try:
-            # Bypass youtube_transcript_api deadlock menggunakan yt-dlp native srv1 parsing
-            def extract_ytdlp_transcript(vid, url_str):
-                import xml.etree.ElementTree as ET
-                import yt_dlp
-                import os
-                import html
-                
-                ops = {
-                    'quiet': True, 'skip_download': True,
-                    'writesubtitles': True, 'writeautomaticsub': True,
-                    'subtitleslangs': ['id', 'en', 'en-US'],
-                    'subtitlesformat': 'srv1',
-                    'outtmpl': f'static/tempsub_{vid}.%(ext)s'
-                }
-                with yt_dlp.YoutubeDL(ops) as yd:
-                    yd.download([url_str])
-                    
-                s_file = None
-                for lng in ['id', 'en', 'en-US']:
-                    pth = f"static/tempsub_{vid}.{lng}.srv1"
-                    if os.path.exists(pth):
-                        s_file = pth
-                        break
-                if not s_file:
-                    return None
-                    
-                trs = []
-                try:
-                    tree = ET.parse(s_file)
-                    for child in tree.getroot():
-                        if child.tag == 'text':
-                            st = float(child.attrib.get('start', 0))
-                            dr = float(child.attrib.get('dur', 0))
-                            txt = child.text
-                            if txt:
-                                trs.append({'start': st, 'duration': dr, 'text': html.unescape(txt.replace('\n', ' ').strip())})
-                finally:
-                    try: os.remove(s_file)
-                    except: pass
-                return trs
-                
-            fetched_transcript_data = extract_ytdlp_transcript(v_id, url)
-            if not fetched_transcript_data:
-                raise Exception("Lirik video gagal ditarik! YouTube sedang memblokir keras IP/Wi-Fi Anda (Error 429).")
-                
-            full_text = " ".join([t['text'] for t in fetched_transcript_data])
-            if len(full_text) > 8000:
-                full_text = full_text[:8000] 
-            audio_bypass_mode = False
-        except Exception as e:
-            print("Transcript API terblokir:", e)
-            print("MENGAKTIFKAN MODE RAW AUDIO SCANNING (BYPASS 100%)...")
-            full_text = ""
-            fetched_transcript_data = None
-            audio_bypass_mode = True
-                
-        # Step 3: Analyze with Gemini AI
-        base_rules = f"""
-        ATURAN PENTING & MUTLAK:
-        1. LEWATI (HINDARI) 3 Menit Pertama Video! (Jangan memberi klip dari detik 0-180 karena itu berisi opening/basa-basi).
-        2. Cari momen EMOSIONAL TERKUAT: perdebatan panas, kemarahan, tawa meledak, kalimat hiperbola, atau pernyataan yang sangat menantang dan kontroversial.
-        3. Durasi masing-masing klip HARUS masuk akal, persis {clip_duration} detik, potongan rapi, hindari kalimat yang terpotong di tengah-tengah.
-        4. Balas HANYA dengan JSON valid dalam format array ini (tepat 3 item) tanpa markdown:
-        [
-          {{
-            "title": "Judul Clickbait Singkat",
-            "start_time": 300,
-            "end_time": {300 + clip_duration},
-            "score": "99/100",
-            "reason": "Sangat marah dan bernada tinggi"
-          }}
-        ]
-        """
+        # Generate unique task ID
+        import uuid
+        task_id = f"task_{int(time.time())}_{uuid.uuid4().hex[:8]}"
         
-        sys_prompt_text = f"Kamu adalah spesialis pemotong video TikTok. Berdasarkan teks berikut, temukan 3 potongan (durasi {clip_duration} detik) paling EMOSIONAL, PANAS, atau HIPERBOLA.\n" + base_rules
-        sys_prompt_audio = f"Kamu adalah spesialis pemotong video TikTok. DENGARKAN seluruh audio ini dan temukan 3 potongan (durasi {clip_duration} detik) paling EMOSIONAL, PANAS, atau HIPERBOLA hanya dari mendengarkan nada suaranya!\n" + base_rules
+        # Initialize task status file
+        task_dir = os.path.join(os.path.dirname(__file__), 'static', 'tasks')
+        os.makedirs(task_dir, exist_ok=True)
+        task_file = os.path.join(task_dir, f"{task_id}.json")
+        with open(task_file, 'w', encoding='utf-8') as f:
+            json.dump({
+                "status": "pending",
+                "progress": 0,
+                "message": "Mengantri di server..."
+            }, f, indent=2)
+            
+        # Determine base URL for download links
+        if BASE_URL_ENV:
+            base_url = BASE_URL_ENV
+        else:
+            scheme = request.headers.get('X-Forwarded-Proto', request.scheme)
+            host = request.headers.get('X-Forwarded-Host', request.host)
+            base_url = f"{scheme}://{host}"
+            
+        # Trigger background worker process
+        import sys
+        import subprocess
+        python_bin = sys.executable
+        subprocess.Popen([
+            python_bin,
+            'task_worker.py',
+            task_id,
+            url,
+            str(clip_duration),
+            layout_mode,
+            username,
+            str(with_subtitle),
+            base_url
+        ])
         
-        if not os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY") == "YOUR_GEMINI_API_KEY":
-            ai_results = [{"title": "API Key Belum Diset", "start_time": 180, "end_time": 210, "score": "95/100", "reason": "Mohon isi .env"}]
-        else:
-            try:
-                genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-                model = genai.GenerativeModel('gemini-2.5-flash', generation_config={"response_mime_type": "application/json"})
-                
-                audio_file = None
-                temp_m4a = f"static/full_audio_{v_id}.m4a"
-                
-                if audio_bypass_mode:
-                    print("Mengunduh Audio Utuh untuk Analisis Gemini (Ini butuh 1-2 menit)...")
-                    import subprocess
-                    subprocess.run(["yt-dlp", "-f", "wa[ext=m4a]/ba[ext=m4a]/ba", "-o", temp_m4a, url], capture_output=True)
-                    
-                    if os.path.exists(temp_m4a):
-                        print("Mengunggah Audio ke Gemini File API...")
-                        audio_file = genai.upload_file(temp_m4a)
-                        print("Menganalisis Suara untuk mencari Golden Moments...")
-                        response = model.generate_content([audio_file, sys_prompt_audio])
-                    else:
-                        raise Exception("Gagal download m4a full")
-                else:
-                    prompt = sys_prompt_text + f"\n\nTranskrip Video:\n{full_text}"
-                    response = model.generate_content(prompt)
-                
-                raw_content = response.text.strip()
-                if raw_content.startswith("```json"):
-                     raw_content = raw_content[7:-3]
-                elif raw_content.startswith("```"):
-                     raw_content = raw_content[3:-3]
-                ai_results = json.loads(raw_content)
-                
-                # Cleanup audio
-                if audio_file:
-                    try:
-                        genai.delete_file(audio_file.name)
-                        if os.path.exists(temp_m4a): os.remove(temp_m4a)
-                    except: pass
-            except Exception as ai_e:
-                print("Gemini API Mengalami Error:", ai_e)
-                ai_results = [
-                    {"title": "Gagal Menarik API", "start_time": 180, "end_time": 210, "score": "99/100", "reason": "Mode Darurat Aktif"}
-                ]
-
-        # Ensure output mapping for frontend format, and run local clip creation via FFmpeg
-        final_clips = []
-        for idx, clip in enumerate(ai_results):
-            cid = f"{v_id}_{idx}"
-            
-            # Paksa durasi menjadi tepat clip_duration detik
-            duration = clip.get('end_time', 10) - clip.get('start_time', 0)
-            if duration != clip_duration:
-                clip['end_time'] = clip['start_time'] + clip_duration
-                
-            m = clip_duration // 60
-            s = clip_duration % 60
-            if clip_duration >= 60:
-                duration_str = f"{m:02d}:{s:02d}"
-            else:
-                duration_str = f"00:{clip_duration:02d}"
-            
-            # 4. Memotong Video Secara Nyata
-            # Memanggil fungsi FFmpeg, ini akan mem-blocking response hingga proses crop selesai.
-            # Pada environment nyata, disarankan menggunakan Message Queue.
-            try:
-                # jika API belum diset, bypass the cutting for mock
-                if os.getenv("GEMINI_API_KEY") and os.getenv("GEMINI_API_KEY") != "YOUR_GEMINI_API_KEY":
-                    mp4_path = create_vertical_clip(url, clip['start_time'], clip['end_time'], output_dir="static", clip_id=cid, transcript_data=fetched_transcript_data, with_subtitle=with_subtitle, layout_mode=layout_mode)
-                    # Gunakan BASE_URL dari env jika ada, atau deteksi otomatis dari Host header
-                    if BASE_URL_ENV:
-                        base = BASE_URL_ENV
-                    else:
-                        scheme = request.headers.get('X-Forwarded-Proto', request.scheme)
-                        host = request.headers.get('X-Forwarded-Host', request.host)
-                        base = f"{scheme}://{host}"
-                    # mp4_path = "static/clip_xxx.mp4" → URL: base/static/clip_xxx.mp4
-                    dl_url = f"{base}/{mp4_path.replace(os.sep, '/')}"
-                else:
-                    dl_url = "#"
-            except Exception as e:
-                print("Error cutting video:", e)
-                dl_url = "#"
-            
-            final_clips.append({
-                "id": cid, 
-                "title": clip.get('title', 'Video Klip'), 
-                "duration": duration_str, 
-                "score": clip.get('score', '90/100'), 
-                "viralReason": clip.get('reason', 'Hook Menarik'), 
-                "thumbnail": info.get('thumbnail', 'https://via.placeholder.com/300x500'),
-                "download_url": dl_url
-            })
-
-        # Potong video sukses, kurangi kredit jika bukan admin
-        if not is_admin:
-            user_obj['credits'] = max(0, user_credits - 1)
-            save_users(users)
-            new_credits = user_obj['credits']
-        else:
-            new_credits = user_credits
-
-        return jsonify({"clips": final_clips, "original_title": info.get('title'), "new_credits": new_credits})
+        return jsonify({"task_id": task_id}), 202
         
     except Exception as e:
-        print("Backend Error:", repr(e))
+        print("Backend Process Error:", repr(e))
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/task/<task_id>', methods=['GET'])
+def get_task_status(task_id):
+    task_dir = os.path.join(os.path.dirname(__file__), 'static', 'tasks')
+    task_file = os.path.join(task_dir, f"{task_id}.json")
+    
+    if not os.path.exists(task_file):
+        return jsonify({"error": "Task tidak ditemukan"}), 404
+        
+    try:
+        with open(task_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": f"Gagal membaca status task: {str(e)}"}), 500
 
 if __name__ == '__main__':
     # Start auto-cleanup thread for static folder (expires files > 1 hour old)
@@ -891,6 +758,7 @@ if __name__ == '__main__':
                         static_dir = os.path.join(os.path.dirname(__file__), 'static')
                         if os.path.exists(static_dir):
                             now = time.time()
+                            # Clean files in static/
                             extensions = ('.mp4', '.m4a', '.mp3', '.vtt', '.srv1', '.json3')
                             for filename in os.listdir(static_dir):
                                 file_path = os.path.join(static_dir, filename)
@@ -903,6 +771,21 @@ if __name__ == '__main__':
                                             print(f"[Cleanup] Automatically deleted expired file: {filename}")
                                         except Exception as e:
                                             print(f"[Cleanup] Failed to delete {filename}: {e}")
+                            
+                            # Clean files in static/tasks/
+                            tasks_dir = os.path.join(static_dir, 'tasks')
+                            if os.path.exists(tasks_dir):
+                                for filename in os.listdir(tasks_dir):
+                                    file_path = os.path.join(tasks_dir, filename)
+                                    if os.path.isfile(file_path) and filename.lower().endswith('.json'):
+                                        file_time = os.path.getmtime(file_path)
+                                        # 2 hours = 7200 seconds
+                                        if now - file_time > 7200:
+                                            try:
+                                                os.remove(file_path)
+                                                print(f"[Cleanup] Automatically deleted expired task file: {filename}")
+                                            except Exception as e:
+                                                print(f"[Cleanup] Failed to delete task file {filename}: {e}")
                 except Exception as e:
                     print(f"[Cleanup] Error in loop: {e}")
                 # Check every 10 minutes (600 seconds)

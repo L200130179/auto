@@ -1,0 +1,37 @@
+{
+  "status": "completed",
+  "progress": 100,
+  "message": "Selesai!",
+  "updated_at": 1779436628.7012768,
+  "clips": [
+    {
+      "id": "NyAopkHYIKg_0",
+      "title": "IQ Indonesia Terbawah di ASEAN?",
+      "duration": "00:06",
+      "score": "95/100",
+      "viralReason": "Mengejutkan dan bernada prihatin saat mengungkap fakta bahwa IQ rata-rata penduduk Indonesia 'terbawah di ASEAN'.",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://127.0.0.1:5000/static/clip_NyAopkHYIKg_0.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_1",
+      "title": "Kecaman Pedas Program Makan Bergizi!",
+      "duration": "00:06",
+      "score": "98/100",
+      "viralReason": "Mengutip langsung kritik keras dan bernada menantang, 'Apa-apaan sih? Lebih baik support pendidikan daripada makan bergizi gratis!', menunjukkan perdebatan panas.",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://127.0.0.1:5000/static/clip_NyAopkHYIKg_1.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_2",
+      "title": "Ancaman Tegas Bagi Koruptor Dana!",
+      "duration": "00:06",
+      "score": "97/100",
+      "viralReason": "Nada bicara yang tegas dan penuh komitmen saat menyatakan, 'Kalau dua-duanya berkoalisi ya kita kirim aparat penegak hukum untuk mengaudit', menunjukkan nol toleransi terhadap penyimpangan.",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://127.0.0.1:5000/static/clip_NyAopkHYIKg_2.mp4"
+    }
+  ],
+  "original_title": "Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  | Helmy Yahya Bicara",
+  "new_credits": 9999
+}

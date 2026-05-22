@@ -1,0 +1,19 @@
+{
+  "status": "completed",
+  "progress": 100,
+  "message": "Selesai!",
+  "updated_at": 1779436196.9538927,
+  "clips": [
+    {
+      "id": "NyAopkHYIKg_0",
+      "title": "Gagal Menarik API",
+      "duration": "00:06",
+      "score": "99/100",
+      "viralReason": "Mode Darurat Aktif",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://127.0.0.1:5000/static/clip_NyAopkHYIKg_0.mp4"
+    }
+  ],
+  "original_title": "Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  | Helmy Yahya Bicara",
+  "new_credits": 9999
+}
