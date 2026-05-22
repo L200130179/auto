@@ -152,13 +152,21 @@ def main():
             fetched_transcript_data = None
             audio_bypass_mode = True
             
+        # Determine target number of clips based on duration
+        if clip_duration == 6:
+            num_clips_target = 15
+        elif clip_duration == 15:
+            num_clips_target = 10
+        else:
+            num_clips_target = 6
+
         # Step 3: Analyze with Gemini AI
         base_rules = f"""
         ATURAN PENTING & MUTLAK:
-        1. LEWATI (HINDARI) 3 Menit Pertama Video! (Jangan memberi klip dari detik 0-180 karena itu berisi opening/basa-basi).
+        1. LEWATI (HINDARI) 3 Menit Pertama Video! (Jangan memberi klip dari detik 0-180 karena itu berisi opening/basa-basi). TAPI jika total durasi video pendek (di bawah 10 menit) atau Anda kesulitan menemukan klip yang cukup, Anda diperbolehkan mengambil dari detik 0.
         2. Cari momen EMOSIONAL TERKUAT: perdebatan panas, kemarahan, tawa meledak, kalimat hiperbola, atau pernyataan yang sangat menantang dan kontroversial.
         3. Durasi masing-masing klip HARUS masuk akal, persis {clip_duration} detik, potongan rapi, hindari kalimat yang terpotong di tengah-tengah.
-        4. Balas HANYA dengan JSON valid dalam format array ini (tepat 3 item) tanpa markdown:
+        4. Balas HANYA dengan JSON valid dalam format array ini (WAJIB menghasilkan TEPAT {num_clips_target} item JSON, tidak boleh kurang):
         [
           {{
             "title": "Judul Clickbait Singkat",
@@ -168,14 +176,24 @@ def main():
             "reason": "Sangat marah dan bernada tinggi"
           }}
         ]
+        Jika Anda kesulitan menemukan momen emosional yang pas, Anda WAJIB melengkapinya dengan momen menarik atau edukatif lainnya hingga mencapai TEPAT {num_clips_target} klip. Jangan pernah mengembalikan kurang dari {num_clips_target} klip!
         """
         
-        sys_prompt_text = f"Kamu adalah spesialis pemotong video TikTok. Berdasarkan teks berikut, temukan 3 potongan (durasi {clip_duration} detik) paling EMOSIONAL, PANAS, atau HIPERBOLA.\n" + base_rules
-        sys_prompt_audio = f"Kamu adalah spesialis pemotong video TikTok. DENGARKAN seluruh audio ini dan temukan 3 potongan (durasi {clip_duration} detik) paling EMOSIONAL, PANAS, atau HIPERBOLA hanya dari mendengarkan nada suaranya!\n" + base_rules
+        sys_prompt_text = f"Kamu adalah spesialis pemotong video TikTok. Berdasarkan teks berikut, temukan dan hasilkan TEPAT {num_clips_target} potongan (durasi {clip_duration} detik) paling EMOSIONAL, PANAS, atau HIPERBOLA.\n" + base_rules
+        sys_prompt_audio = f"Kamu adalah spesialis pemotong video TikTok. DENGARKAN seluruh audio ini dan temukan serta hasilkan TEPAT {num_clips_target} potongan (durasi {clip_duration} detik) paling EMOSIONAL, PANAS, atau HIPERBOLA hanya dari mendengarkan nada suaranya!\n" + base_rules
         
         gemini_key = os.getenv("GEMINI_API_KEY")
         if not gemini_key or gemini_key == "YOUR_GEMINI_API_KEY":
-            ai_results = [{"title": "API Key Belum Diset", "start_time": 180, "end_time": 210, "score": "95/100", "reason": "Mohon isi .env"}]
+            ai_results = []
+            for i in range(num_clips_target):
+                start = 180 + i * (clip_duration + 5)
+                ai_results.append({
+                    "title": f"Klip Mock {i+1} (API Key Belum Diset)",
+                    "start_time": start,
+                    "end_time": start + clip_duration,
+                    "score": "95/100",
+                    "reason": "Mohon isi .env"
+                })
         else:
             try:
                 genai.configure(api_key=gemini_key)
@@ -187,7 +205,7 @@ def main():
                 if audio_bypass_mode:
                     update_task_status(task_id, "processing", 30, "Mendeteksi pemblokiran transkrip YouTube. Mengunduh audio lengkap untuk analisis AI (1-2 menit)...")
                     import subprocess as sp
-                    sp.run([sys.executable, "-m", "yt_dlp", "-f", "wa[ext=m4a]/ba[ext=m4a]/ba", "-o", temp_m4a, url], capture_output=True)
+                    sp.run([sys.executable, "-m", "yt-dlp", "-f", "wa[ext=m4a]/ba[ext=m4a]/ba", "-o", temp_m4a, url], capture_output=True)
                     
                     if os.path.exists(temp_m4a):
                         update_task_status(task_id, "processing", 45, "Menganalisis audio dengan Gemini AI...")
@@ -207,6 +225,72 @@ def main():
                      raw_content = raw_content[3:-3]
                 ai_results = json.loads(raw_content)
                 
+                if isinstance(ai_results, dict):
+                    # Jika berupa dict dengan list di dalamnya, ekstrak list tersebut
+                    for k, v in ai_results.items():
+                        if isinstance(v, list):
+                            ai_results = v
+                            break
+                    if isinstance(ai_results, dict):
+                        ai_results = [ai_results]
+                
+                if not isinstance(ai_results, list):
+                    ai_results = []
+                    
+                # Trim jika terlalu banyak
+                ai_results = ai_results[:num_clips_target]
+                
+                # Isi jika kurang dari target
+                if len(ai_results) < num_clips_target:
+                    print(f"Gemini returned only {len(ai_results)} clips, filling up to {num_clips_target}...")
+                    existing_starts = []
+                    for c in ai_results:
+                        if isinstance(c, dict) and 'start_time' in c:
+                            try:
+                                existing_starts.append(float(c['start_time']))
+                            except:
+                                pass
+                                
+                    total_dur = 600
+                    if fetched_transcript_data:
+                        try:
+                            total_dur = max(float(t['start']) + float(t['duration']) for t in fetched_transcript_data)
+                        except Exception:
+                            pass
+                    elif info and info.get('duration'):
+                        try:
+                            total_dur = float(info.get('duration'))
+                        except Exception:
+                            pass
+                            
+                    current_start = 180 if total_dur > 240 else 0
+                    while len(ai_results) < num_clips_target and current_start + clip_duration <= total_dur:
+                        overlap = False
+                        for est in existing_starts:
+                            if abs(current_start - est) < clip_duration:
+                                overlap = True
+                                break
+                        if not overlap:
+                            ai_results.append({
+                                "title": f"Momen Menarik Tambahan {len(ai_results) + 1}",
+                                "start_time": current_start,
+                                "end_time": current_start + clip_duration,
+                                "score": "95/100",
+                                "reason": "Analisis auto-segmentasi"
+                            })
+                            existing_starts.append(current_start)
+                        current_start += clip_duration + 5
+                        
+                    while len(ai_results) < num_clips_target:
+                        start_t = (len(ai_results) * (clip_duration + 2)) % max(1, int(total_dur - clip_duration))
+                        ai_results.append({
+                            "title": f"Momen Menarik Cadangan {len(ai_results) + 1}",
+                            "start_time": start_t,
+                            "end_time": start_t + clip_duration,
+                            "score": "90/100",
+                            "reason": "Segmentasi cadangan"
+                        })
+                
                 # Cleanup audio
                 if audio_file:
                     try:
@@ -215,9 +299,16 @@ def main():
                     except: pass
             except Exception as ai_e:
                 print("Gemini API Error:", ai_e)
-                ai_results = [
-                    {"title": "Gagal Menarik API", "start_time": 180, "end_time": 210, "score": "99/100", "reason": "Mode Darurat Aktif"}
-                ]
+                ai_results = []
+                for i in range(num_clips_target):
+                    start = 180 + i * (clip_duration + 5)
+                    ai_results.append({
+                        "title": f"Momen Menarik {i+1}",
+                        "start_time": start,
+                        "end_time": start + clip_duration,
+                        "score": "99/100",
+                        "reason": "Mode Darurat Aktif"
+                    })
                 
         # Step 4: Cut video and generate clips
         final_clips = []
