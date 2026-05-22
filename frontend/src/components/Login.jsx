@@ -138,8 +138,8 @@ const Login = ({ onLoginSuccess }) => {
     setSuccessMsg('');
 
     const endpoint = isAdmin 
-      ? 'http://localhost:5000/api/admin/login' 
-      : 'http://localhost:5000/api/login';
+      ? '/api/admin/login' 
+      : '/api/login';
 
     axios.post(endpoint, { username, password })
       .then(res => {
@@ -181,7 +181,7 @@ const Login = ({ onLoginSuccess }) => {
     const deviceId = getDeviceID();
     const deviceFingerprint = getDeviceFingerprint();
 
-    axios.post('http://localhost:5000/api/register', {
+    axios.post('/api/register', {
       username,
       email,
       password,
@@ -208,7 +208,7 @@ const Login = ({ onLoginSuccess }) => {
     setError('');
     setSuccessMsg('');
 
-    axios.post('http://localhost:5000/api/verify', {
+    axios.post('/api/verify', {
       username,
       code: otpCode
     })
@@ -234,7 +234,7 @@ const Login = ({ onLoginSuccess }) => {
     setError('');
     setSuccessMsg('');
 
-    axios.post('http://localhost:5000/api/resend-code', { username })
+    axios.post('/api/resend-code', { username })
       .then(res => {
         setIsResending(false);
         setSuccessMsg(res.data.message || 'Kode verifikasi baru berhasil dikirim!');

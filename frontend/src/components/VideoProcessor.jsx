@@ -41,7 +41,7 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
     }, 600);
 
     // Simulate API call using our actual Flask backend
-    axios.post('http://localhost:5000/api/process', { 
+    axios.post('/api/process', { 
       url, 
       with_subtitle: withSubtitle, 
       clip_duration: clipDuration, 

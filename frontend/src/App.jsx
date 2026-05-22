@@ -26,7 +26,7 @@ function App() {
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/settings')
+    axios.get('/api/settings')
       .then(res => {
         setTopUpInstruction(res.data.topup_instruction || '');
       })

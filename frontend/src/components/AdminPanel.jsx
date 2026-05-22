@@ -38,7 +38,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
 
   const fetchUsers = () => {
     setIsLoading(true);
-    axios.get('http://localhost:5000/api/admin/users')
+    axios.get('/api/admin/users')
       .then(res => {
         setUsers(res.data.users || []);
         setIsLoading(false);
@@ -54,7 +54,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
     fetchUsers();
     
     // Fetch current settings
-    axios.get('http://localhost:5000/api/settings')
+    axios.get('/api/settings')
       .then(res => {
         setTopupInstruction(res.data.topup_instruction || '');
         setAutoCleanup(res.data.auto_cleanup !== false);
@@ -64,7 +64,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
       });
 
     // Fetch current gemini key
-    axios.get('http://localhost:5000/api/admin/gemini-key')
+    axios.get('/api/admin/gemini-key')
       .then(res => {
         setGeminiKey(res.data.gemini_key || '');
       })
@@ -81,7 +81,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
     setError('');
     setSuccessMsg('');
 
-    axios.post('http://localhost:5000/api/admin/users', {
+    axios.post('/api/admin/users', {
       username: newUsername,
       password: newPassword,
       role: newRole,
@@ -111,7 +111,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
   const handleUpdateCreditSubmit = (username, credits) => {
     setError('');
     setSuccessMsg('');
-    axios.post('http://localhost:5000/api/admin/users/update-credit', {
+    axios.post('/api/admin/users/update-credit', {
       username,
       credits
     })
@@ -133,7 +133,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
     setError('');
     setSuccessMsg('');
 
-    axios.post('http://localhost:5000/api/admin/settings', {
+    axios.post('/api/admin/settings', {
       topup_instruction: topupInstruction
     })
       .then(res => {
@@ -156,7 +156,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
     }
     setError('');
     setSuccessMsg('');
-    axios.delete('http://localhost:5000/api/admin/users', { data: { username } })
+    axios.delete('/api/admin/users', { data: { username } })
       .then(res => {
         setSuccessMsg(res.data.message || `User "${username}" berhasil dihapus.`);
         fetchUsers();
@@ -183,7 +183,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
     setIsEditLoading(true);
     setError('');
     setSuccessMsg('');
-    axios.post('http://localhost:5000/api/admin/users/update', {
+    axios.post('/api/admin/users/update', {
       username: editUsername,
       new_username: editNewUsername,
       email: editEmail,
@@ -212,7 +212,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
     setError('');
     setSuccessMsg('');
 
-    axios.post('http://localhost:5000/api/admin/gemini-key', {
+    axios.post('/api/admin/gemini-key', {
       gemini_key: geminiKey
     })
       .then(res => {
@@ -233,7 +233,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
     setIsCleanLoading(true);
     setError('');
     setSuccessMsg('');
-    axios.post('http://localhost:5000/api/admin/clean-static')
+    axios.post('/api/admin/clean-static')
       .then(res => {
         setIsCleanLoading(false);
         setSuccessMsg(res.data.message || 'Folder static berhasil dibersihkan!');
@@ -249,7 +249,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
     setIsToggleLoading(true);
     setError('');
     setSuccessMsg('');
-    axios.post('http://localhost:5000/api/admin/toggle-cleanup', {
+    axios.post('/api/admin/toggle-cleanup', {
       auto_cleanup: newValue
     })
       .then(res => {
