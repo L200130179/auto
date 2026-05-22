@@ -1,0 +1,8 @@
+flask
+flask-cors
+yt-dlp
+google-generativeai
+ffmpeg-python
+python-dotenv
+youtube-transcript-api
+imageio-ffmpeg

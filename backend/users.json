@@ -1,0 +1,22 @@
+[
+  {
+    "username": "admin",
+    "password": "admin123",
+    "role": "admin",
+    "credits": 9999,
+    "created_at": "2026-05-20T10:00:00Z"
+  },
+  {
+    "username": "ariando",
+    "email": "ariandosarep@gmail.com",
+    "password": "123123",
+    "role": "creator",
+    "credits": 1,
+    "is_verified": true,
+    "device_id": "device_7tqqh5fb20cw8q0ovs229c",
+    "device_fingerprint": "fp_61agnm",
+    "ip_address": "127.0.0.1",
+    "mac_address": "b0:fc:36:1b:4e:2e",
+    "created_at": "2026-05-20 16:11:45"
+  }
+]

@@ -1,0 +1,36 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover {
+  color: var(--text-main);
+}

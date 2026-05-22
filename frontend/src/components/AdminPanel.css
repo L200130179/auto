@@ -1,0 +1,356 @@
+.admin-panel-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.admin-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.back-btn {
+  font-size: 0.9rem;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 868px) {
+  .admin-grid {
+    grid-template-columns: 1.2fr 1.8fr;
+  }
+}
+
+.admin-card {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 16px;
+  text-align: left;
+}
+
+.card-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+.card-icon {
+  color: var(--accent);
+}
+
+.card-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.card-header p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 4px 0 0 0;
+}
+
+.admin-alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.error-alert {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.success-alert {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-field-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.input-icon-wrapper input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.input-icon-wrapper input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.role-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.role-option input {
+  display: none;
+}
+
+.role-option span {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.role-option.active {
+  border-color: var(--accent);
+  background: rgba(0, 229, 255, 0.05);
+}
+
+.role-option.active span {
+  color: var(--accent);
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.list-loading {
+  padding: 40px;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.users-table th {
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--glass-border);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.users-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.9rem;
+}
+
+.users-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.username-cell {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.admin {
+  background: rgba(138, 43, 226, 0.15);
+  color: var(--primary-hover);
+  border: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.role-badge.creator {
+  background: rgba(0, 229, 255, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+.date-cell {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+/* Modal Overlay & Card Styling */
+.admin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.admin-modal {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(15, 22, 30, 0.95);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.modal-header h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.close-modal-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-modal-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-main);
+}
+
+/* Action button styles in User Table */
+.action-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-btn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.edit-btn-action {
+  color: var(--accent);
+}
+
+.edit-btn-action:hover {
+  background: rgba(0, 229, 255, 0.08);
+  border-color: rgba(0, 229, 255, 0.3);
+}
+
+.delete-btn-action {
+  color: #fca5a5;
+}
+
+.delete-btn-action:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+}
