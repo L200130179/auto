@@ -73,18 +73,13 @@ def save_users(users):
 
 # Helper to detect MAC address of client machine
 def get_client_mac(ip):
-    import uuid
+    if ip in ['127.0.0.1', 'localhost', '::1'] or ip.startswith('127.'):
+        # Bypass localhost MAC check to allow local multi-account registration for testing
+        return None
     import subprocess
     import re
-    if ip in ['127.0.0.1', 'localhost', '::1']:
-        try:
-            # Localhost MAC
-            mac = ':'.join(['{:02x}'.format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
-            return mac
-        except Exception:
-            return None
     try:
-        # Run arp -a <ip>
+        # Run arp -a <ip> (mencari MAC address di tabel ARP untuk jaringan lokal maupun publik)
         output = subprocess.check_output(f"arp -a {ip}", shell=True).decode('utf-8')
         match = re.search(r'([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})', output)
         if match:
