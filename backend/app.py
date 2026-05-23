@@ -558,13 +558,28 @@ def api_get_gemini_key():
                     break
     if not key_val:
         key_val = os.environ.get("GEMINI_API_KEY", "")
-    return jsonify({"gemini_key": key_val})
+        
+    # Split by comma or semicolon and clean
+    keys = [k.strip() for k in key_val.replace(';', ',').split(',') if k.strip()]
+    # Pad to exactly 10 keys
+    while len(keys) < 10:
+        keys.append("")
+    keys = keys[:10]
+    
+    return jsonify({"gemini_key": key_val, "gemini_keys": keys})
 
 @app.route('/api/admin/gemini-key', methods=['POST'])
 def api_update_gemini_key():
     data = request.json or {}
-    new_key = data.get('gemini_key', '').strip()
+    gemini_keys = data.get('gemini_keys')
     
+    if gemini_keys and isinstance(gemini_keys, list):
+        # Filter empty keys and join by comma
+        filtered_keys = [k.strip() for k in gemini_keys if k.strip()]
+        new_key = ",".join(filtered_keys)
+    else:
+        new_key = data.get('gemini_key', '').strip()
+        
     if not new_key:
         return jsonify({"error": "Gemini API Key tidak boleh kosong"}), 400
         

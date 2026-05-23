@@ -1,0 +1,65 @@
+{
+  "status": "completed",
+  "progress": 100,
+  "message": "Selesai!",
+  "updated_at": 1779522132.0431871,
+  "clips": [
+    {
+      "id": "NyAopkHYIKg_0",
+      "title": "PRESIDEN Jamin: SEMUA ANAK BANGSA Berhak Dapat Makan Bergizi!",
+      "duration": "00:30",
+      "score": "95/100",
+      "viralReason": "Pernyataan kuat dan emosional tentang kesetaraan akses gizi untuk seluruh anak Indonesia, menantang diskriminasi.",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_0.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_1",
+      "title": "WOW! Program Gizi Sudah di 38 PROVINSI & 502 KABUPATEN!",
+      "duration": "00:30",
+      "score": "90/100",
+      "viralReason": "Reaksi host yang hiperbola ('Wow') terhadap cakupan program yang masif dan kerja keras yang luar biasa, menunjukkan skala dampak.",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_1.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_2",
+      "title": "HEBOH! Profesor Dadan KONTROVERSIAL Karena SARAN Ini?",
+      "duration": "00:30",
+      "score": "97/100",
+      "viralReason": "Langsung menyinggung kontroversi Prof. Dadan terkait usulan mengkonsumsi serangga, menciptakan rasa penasaran dan ketegangan.",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_2.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_3",
+      "title": "SEMPAT RIBUT! Penjelasan Prof Dadan Soal Protein Serangga",
+      "duration": "00:30",
+      "score": "98/100",
+      "viralReason": "Prof. Dadan mengkonfirmasi adanya 'ribut' atau kontroversi seputar gagasannya tentang protein serangga, menunjukkan perdebatan panas.",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_3.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_4",
+      "title": "Bikin Kaget! SERANGGA adalah 'Future Protein' Dunia?",
+      "duration": "00:30",
+      "score": "96/100",
+      "viralReason": "Pernyataan hiperbola bahwa serangga adalah 'protein masa depan' yang didukung oleh FAO dan alasan ilmiah, mengejutkan dan menantang pandangan umum.",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_4.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_5",
+      "title": "MIRIS! IQ Indonesia Terendah di ASEAN & Populasi Meledak?!",
+      "duration": "00:30",
+      "score": "99/100",
+      "viralReason": "Momen paling emosional dan kontroversial, Helmi mengungkapkan fakta mengejutkan tentang IQ Indonesia di ASEAN dan proyeksi pertumbuhan populasi yang sangat tinggi.",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_5.mp4"
+    }
+  ],
+  "original_title": "Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  | Helmy Yahya Bicara",
+  "new_credits": 9999,
+  "pdf_url": "http://localhost:5000/static/metadata_test_task_cli.pdf"
+}

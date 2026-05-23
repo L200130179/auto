@@ -29,7 +29,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
   const [isEditLoading, setIsEditLoading] = useState(false);
 
   // Gemini API Key state
-  const [geminiKey, setGeminiKey] = useState('');
+  const [geminiKeys, setGeminiKeys] = useState(Array(10).fill(''));
   const [isGeminiSubmitLoading, setIsGeminiSubmitLoading] = useState(false);
   const [showGeminiKey, setShowGeminiKey] = useState(false);
   const [isCleanLoading, setIsCleanLoading] = useState(false);
@@ -63,13 +63,21 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
         console.error('Error fetching settings in AdminPanel:', err);
       });
 
-    // Fetch current gemini key
+    // Fetch current gemini keys
     axios.get('/api/admin/gemini-key')
       .then(res => {
-        setGeminiKey(res.data.gemini_key || '');
+        if (res.data.gemini_keys && Array.isArray(res.data.gemini_keys)) {
+          setGeminiKeys(res.data.gemini_keys);
+        } else {
+          const raw = res.data.gemini_key || '';
+          const parsed = raw.split(',').map(k => k.trim());
+          const padded = [...parsed];
+          while (padded.length < 10) padded.push('');
+          setGeminiKeys(padded.slice(0, 10));
+        }
       })
       .catch(err => {
-        console.error('Error fetching gemini key in AdminPanel:', err);
+        console.error('Error fetching gemini keys in AdminPanel:', err);
       });
   }, []);
 
@@ -204,16 +212,28 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
       });
   };
 
+  const handleKeyChange = (index, value) => {
+    setGeminiKeys(prev => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  };
+
   const handleUpdateGeminiKey = (e) => {
     e.preventDefault();
-    if (!geminiKey) return;
+    const hasKey = geminiKeys.some(k => k.trim() !== '');
+    if (!hasKey) {
+      setError('Minimal harus mengisi 1 Gemini API Key.');
+      return;
+    }
 
     setIsGeminiSubmitLoading(true);
     setError('');
     setSuccessMsg('');
 
     axios.post('/api/admin/gemini-key', {
-      gemini_key: geminiKey
+      gemini_keys: geminiKeys
     })
       .then(res => {
         setIsGeminiSubmitLoading(false);
@@ -449,50 +469,55 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
             </div>
 
             <form onSubmit={handleUpdateGeminiKey} className="admin-form">
-              <div className="form-group">
-                <label>Gemini API Key</label>
-                <div className="input-icon-wrapper">
-                  <Lock size={18} className="input-field-icon" />
-                  <input
-                    type={showGeminiKey ? "text" : "password"}
-                    placeholder="Masukkan Gemini API Key..."
-                    value={geminiKey}
-                    onChange={(e) => setGeminiKey(e.target.value)}
-                    required
-                    disabled={isGeminiSubmitLoading}
-                    style={{ paddingRight: '100px' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowGeminiKey(!showGeminiKey)}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid var(--glass-border)',
-                      borderRadius: '6px',
-                      color: 'var(--text-main)',
-                      padding: '4px 8px',
-                      cursor: 'pointer',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    {showGeminiKey ? 'Sembunyikan' : 'Tampilkan'}
-                  </button>
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto', paddingRight: '6px', marginBottom: '16px' }}>
+                {geminiKeys.map((key, idx) => (
+                  <div className="form-group" key={idx} style={{ margin: 0 }}>
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Gemini API Key #{idx + 1}</label>
+                    <div className="input-icon-wrapper">
+                      <Lock size={14} className="input-field-icon" style={{ left: '12px' }} />
+                      <input
+                        type={showGeminiKey ? "text" : "password"}
+                        placeholder={`Masukkan Gemini API Key #${idx + 1}...`}
+                        value={key}
+                        onChange={(e) => handleKeyChange(idx, e.target.value)}
+                        disabled={isGeminiSubmitLoading}
+                        style={{ paddingLeft: '32px', fontSize: '0.85rem', height: '36px' }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <button type="submit" className="btn-primary submit-btn flex-center" disabled={isGeminiSubmitLoading}>
-                {isGeminiSubmitLoading ? (
-                  <>
-                    <Loader2 className="spinner" size={18} /> Menyimpan...
-                  </>
-                ) : (
-                  'Simpan API Key'
-                )}
-              </button>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowGeminiKey(!showGeminiKey)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid var(--glass-border)',
+                    borderRadius: '8px',
+                    color: 'var(--text-main)',
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s',
+                    flexShrink: 0
+                  }}
+                >
+                  {showGeminiKey ? 'Sembunyikan Sandi' : 'Tampilkan Sandi'}
+                </button>
+
+                <button type="submit" className="btn-primary submit-btn flex-center" disabled={isGeminiSubmitLoading} style={{ margin: 0, flex: 1 }}>
+                  {isGeminiSubmitLoading ? (
+                    <>
+                      <Loader2 className="spinner" size={18} /> Menyimpan...
+                    </>
+                  ) : (
+                    'Simpan API Key'
+                  )}
+                </button>
+              </div>
             </form>
           </div>
 

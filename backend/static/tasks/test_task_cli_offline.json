@@ -1,0 +1,65 @@
+{
+  "status": "completed",
+  "progress": 100,
+  "message": "Selesai!",
+  "updated_at": 1779525027.5040076,
+  "clips": [
+    {
+      "id": "NyAopkHYIKg_0",
+      "title": "VIRAL! Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  |...",
+      "duration": "00:30",
+      "score": "90/100",
+      "viralReason": "Cuplikan menarik durasi 30 detik dari video 'Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  | Helmy Yahya Bicara'. Bahasan penting mengenai Sudah menjadi tamu Podcast saya kali ini yaitu Prof. Dadan Hindayana, Kepala Badan Gizi Nasional (BGN). Ia dilantik pada tanggal 19 Agustus 2024 oleh Presiden Joko Widodo. Badan Gizi Nasional adala....",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_0.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_1",
+      "title": "HOT TOPIC: Apa yang Sebenarnya Terjadi di Balik Dapur MBG...",
+      "duration": "00:30",
+      "score": "91/100",
+      "viralReason": "Cuplikan menarik durasi 30 detik dari video 'Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  | Helmy Yahya Bicara'. Bahasan penting mengenai Sudah menjadi tamu Podcast saya kali ini yaitu Prof. Dadan Hindayana, Kepala Badan Gizi Nasional (BGN). Ia dilantik pada tanggal 19 Agustus 2024 oleh Presiden Joko Widodo. Badan Gizi Nasional adala....",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_1.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_2",
+      "title": "EKSKLUSIF: Kupas Tuntas Apa yang Sebenarnya Terjadi di Ba...",
+      "duration": "00:30",
+      "score": "92/100",
+      "viralReason": "Cuplikan menarik durasi 30 detik dari video 'Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  | Helmy Yahya Bicara'. Bahasan penting mengenai Sudah menjadi tamu Podcast saya kali ini yaitu Prof. Dadan Hindayana, Kepala Badan Gizi Nasional (BGN). Ia dilantik pada tanggal 19 Agustus 2024 oleh Presiden Joko Widodo. Badan Gizi Nasional adala....",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_2.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_3",
+      "title": "Paling Menarik! Apa yang Sebenarnya Terjadi di Balik Dapu...",
+      "duration": "00:30",
+      "score": "93/100",
+      "viralReason": "Cuplikan menarik durasi 30 detik dari video 'Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  | Helmy Yahya Bicara'. Bahasan penting mengenai Sudah menjadi tamu Podcast saya kali ini yaitu Prof. Dadan Hindayana, Kepala Badan Gizi Nasional (BGN). Ia dilantik pada tanggal 19 Agustus 2024 oleh Presiden Joko Widodo. Badan Gizi Nasional adala....",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_3.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_4",
+      "title": "Bahas Tuntas: Apa yang Sebenarnya Terjadi di Balik Dapur ...",
+      "duration": "00:30",
+      "score": "94/100",
+      "viralReason": "Cuplikan menarik durasi 30 detik dari video 'Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  | Helmy Yahya Bicara'. Bahasan penting mengenai Sudah menjadi tamu Podcast saya kali ini yaitu Prof. Dadan Hindayana, Kepala Badan Gizi Nasional (BGN). Ia dilantik pada tanggal 19 Agustus 2024 oleh Presiden Joko Widodo. Badan Gizi Nasional adala....",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_4.mp4"
+    },
+    {
+      "id": "NyAopkHYIKg_5",
+      "title": "Momen Penting dari Apa yang Sebenarnya Terjadi di Balik D...",
+      "duration": "00:30",
+      "score": "95/100",
+      "viralReason": "Cuplikan menarik durasi 30 detik dari video 'Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  | Helmy Yahya Bicara'. Bahasan penting mengenai Sudah menjadi tamu Podcast saya kali ini yaitu Prof. Dadan Hindayana, Kepala Badan Gizi Nasional (BGN). Ia dilantik pada tanggal 19 Agustus 2024 oleh Presiden Joko Widodo. Badan Gizi Nasional adala....",
+      "thumbnail": "https://i.ytimg.com/vi/NyAopkHYIKg/maxresdefault.jpg",
+      "download_url": "http://localhost:5000/static/clip_NyAopkHYIKg_5.mp4"
+    }
+  ],
+  "original_title": "Apa yang Sebenarnya Terjadi di Balik Dapur MBG?  | Helmy Yahya Bicara",
+  "new_credits": 9999,
+  "pdf_url": "http://localhost:5000/static/metadata_test_task_cli_offline.pdf"
+}

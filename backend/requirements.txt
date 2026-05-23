@@ -6,3 +6,4 @@ ffmpeg-python
 python-dotenv
 youtube-transcript-api
 imageio-ffmpeg
+fpdf2

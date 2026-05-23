@@ -18,7 +18,9 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [clips, setClips] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState(null);
   const [processingMessage, setProcessingMessage] = useState('');
+  const [previewUrl, setPreviewUrl] = useState(null);
   const progressIntervalRef = React.useRef(null);
 
   const handleSubmit = (e) => {
@@ -28,6 +30,8 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
     setIsProcessing(true);
     setLoadingProgress(0);
     setClips(null);
+    setPdfUrl(null);
+    setPreviewUrl(null);
     setProcessingMessage('Menghubungkan ke server...');
 
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
@@ -51,7 +55,7 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
         progressIntervalRef.current = setInterval(() => {
           axios.get(`/api/task/${taskId}`)
             .then(taskRes => {
-              const { status, progress, message, clips, new_credits, error } = taskRes.data;
+              const { status, progress, message, clips, new_credits, pdf_url, error } = taskRes.data;
               
               setLoadingProgress(progress || 0);
               setProcessingMessage(message || 'Memproses...');
@@ -66,6 +70,7 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
                 
                 setTimeout(() => {
                   setClips(clips);
+                  setPdfUrl(pdf_url || null);
                   setIsProcessing(false);
                   setLoadingProgress(0);
                   setProcessingMessage('');
@@ -247,12 +252,27 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
 
       {clips && (
         <div className="results-container animate-fade-in-up">
-          <h2 className="results-title">AI Menemukan <span className="gradient-text">{clips.length} Klip Berpotensi Viral</span></h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '24px', gap: '16px' }}>
+            <h2 className="results-title" style={{ margin: 0 }}>AI Menemukan <span className="gradient-text">{clips.length} Klip Berpotensi Viral</span></h2>
+            {pdfUrl && (
+              <a href={pdfUrl} download target="_blank" rel="noreferrer" className="btn-primary flex-center" style={{ padding: '8px 16px', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', textDecoration: 'none', borderRadius: '8px', fontWeight: '600' }}>
+                <Download size={18} style={{ marginRight: '8px' }} /> Download PDF Judul & Deskripsi
+              </a>
+            )}
+          </div>
           
           <div className="clips-grid">
             {clips.map(clip => (
               <div key={clip.id} className="clip-card glass-panel">
-                <div className="clip-thumbnail">
+                <div 
+                  className="clip-thumbnail"
+                  style={{ cursor: clip.download_url && clip.download_url !== '#' ? 'pointer' : 'default' }}
+                  onClick={() => {
+                    if (clip.download_url && clip.download_url !== '#') {
+                      setPreviewUrl(clip.download_url);
+                    }
+                  }}
+                >
                   <img src={clip.thumbnail} alt={clip.title} />
                   <div className="play-overlay">
                     <Play fill="white" size={32} />
@@ -282,6 +302,23 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+      {/* Video Preview Modal Overlay */}
+      {previewUrl && (
+        <div className="preview-modal-overlay" onClick={() => setPreviewUrl(null)}>
+          <div className="preview-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="preview-modal-close" onClick={() => setPreviewUrl(null)}>
+              &times;
+            </button>
+            <video 
+              className="preview-video" 
+              src={previewUrl} 
+              controls 
+              autoPlay 
+              playsInline
+            />
           </div>
         </div>
       )}
