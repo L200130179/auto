@@ -73,11 +73,16 @@ def save_users(users):
 
 # Helper to detect MAC address of client machine
 def get_client_mac(ip):
-    if ip in ['127.0.0.1', 'localhost', '::1'] or ip.startswith('127.'):
-        # Bypass localhost MAC check to allow local multi-account registration for testing
-        return None
+    import uuid
     import subprocess
     import re
+    if ip in ['127.0.0.1', 'localhost', '::1'] or ip.startswith('127.'):
+        try:
+            # Localhost MAC (Mendapatkan MAC address server lokal untuk keperluan pengetesan developer)
+            mac = ':'.join(['{:02x}'.format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
+            return mac
+        except Exception:
+            return None
     try:
         # Run arp -a <ip> (mencari MAC address di tabel ARP untuk jaringan lokal maupun publik)
         output = subprocess.check_output(f"arp -a {ip}", shell=True).decode('utf-8')
@@ -215,9 +220,9 @@ def api_register():
         
     users = load_users()
     for u in users:
-        if u['username'].lower() == username.lower():
+        if u['username'].strip().lower() == username.strip().lower():
             return jsonify({"error": "Username sudah terdaftar"}), 400
-        if u.get('email', '').lower() == email.lower():
+        if u.get('email', '').strip().lower() == email.strip().lower():
             return jsonify({"error": "Email sudah terdaftar"}), 400
             
     # Anti-cheating check: IP, Client device fingerprint, device ID, and LAN MAC (fallback)
@@ -399,6 +404,8 @@ def api_add_user():
     for user in users:
         if user['username'].lower() == username.lower():
             return jsonify({"error": "Username sudah terdaftar"}), 400
+        if email and user.get('email', '').lower() == email.lower():
+            return jsonify({"error": "Email sudah terdaftar"}), 400
             
     new_user = {
         "username": username,
@@ -501,6 +508,11 @@ def api_admin_update_user():
         target_user['username'] = new_username
         
     if email:
+        # Check duplicate email if changing email
+        if email.lower() != target_user.get('email', '').lower():
+            for u in users:
+                if u['username'].lower() != username.lower() and u.get('email', '').lower() == email.lower():
+                    return jsonify({"error": "Email sudah terdaftar oleh pengguna lain"}), 400
         target_user['email'] = email
         
     if password:

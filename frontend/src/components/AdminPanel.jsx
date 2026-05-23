@@ -638,6 +638,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
                 <thead>
                   <tr>
                     <th>Username</th>
+                    <th>Email</th>
                     <th>Role</th>
                     <th>Kredit</th>
                     <th>Tanggal Dibuat</th>
@@ -647,7 +648,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
                 <tbody>
                   {users.length === 0 ? (
                     <tr>
-                      <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
+                      <td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
                         Tidak ada user ditemukan.
                       </td>
                     </tr>
@@ -657,6 +658,10 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
                         <td className="username-cell">
                           <User size={14} style={{ marginRight: '6px', color: 'var(--accent)' }} />
                           {u.username}
+                        </td>
+                        <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                          <Mail size={13} style={{ marginRight: '6px', color: 'var(--text-muted)', verticalAlign: 'middle' }} />
+                          {u.email || '-'}
                         </td>
                         <td>
                           <span className={`role-badge ${u.role === 'admin' ? 'admin' : 'creator'}`}>
