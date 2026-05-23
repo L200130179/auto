@@ -488,7 +488,7 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
                 ))}
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <button
                   type="button"
                   onClick={() => setShowGeminiKey(!showGeminiKey)}
@@ -502,13 +502,14 @@ const AdminPanel = ({ onBackToDashboard, onSettingsSaved }) => {
                     fontSize: '0.85rem',
                     fontWeight: 'bold',
                     transition: 'all 0.2s',
-                    flexShrink: 0
+                    width: '100%',
+                    textAlign: 'center'
                   }}
                 >
                   {showGeminiKey ? 'Sembunyikan Sandi' : 'Tampilkan Sandi'}
                 </button>
 
-                <button type="submit" className="btn-primary submit-btn flex-center" disabled={isGeminiSubmitLoading} style={{ margin: 0, flex: 1 }}>
+                <button type="submit" className="btn-primary submit-btn flex-center" disabled={isGeminiSubmitLoading} style={{ margin: 0, width: '100%' }}>
                   {isGeminiSubmitLoading ? (
                     <>
                       <Loader2 className="spinner" size={18} /> Menyimpan...
