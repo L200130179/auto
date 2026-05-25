@@ -15,6 +15,8 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
   const [withSubtitle, setWithSubtitle] = useState(true);
   const [clipDuration, setClipDuration] = useState(30);
   const [layoutMode, setLayoutMode] = useState('auto_magic');
+  const [momentType, setMomentType] = useState('default');
+  const [customMoment, setCustomMoment] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [clips, setClips] = useState(null);
@@ -41,7 +43,9 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
       with_subtitle: withSubtitle, 
       clip_duration: clipDuration, 
       layout_mode: layoutMode,
-      username: user?.username 
+      username: user?.username,
+      moment_type: momentType,
+      custom_moment: momentType === 'custom' ? customMoment : ''
     })
       .then(res => {
         const taskId = res.data.task_id;
@@ -165,29 +169,96 @@ const VideoProcessor = ({ user, onUpdateCredits }) => {
               <span className="toggle-label">Render Dengan Auto-Subtitle (Teks Kuning)</span>
             </label>
 
-            <div className="duration-selector" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: '500' }}>Pilih Durasi:</span>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {[6, 15, 30, 60, 120, 180].map((val) => (
+            <div className="moment-selector" style={{ marginTop: '8px' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#fff', margin: '0 0 4px 0' }}>Tipe Momen Analisis AI</h3>
+                <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>Pilih tipe momen spesifik yang ingin dianalisis oleh AI.</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                {[
+                  { id: 'default', title: 'Default (Viral/Menarik)', emoji: '✨' },
+                  { id: 'lucu', title: 'Momen Lucu', emoji: '😂' },
+                  { id: 'horor', title: 'Momen Horor', emoji: '👻' },
+                  { id: 'serius_marah', title: 'Momen Serius & Marah', emoji: '😡' },
+                  { id: 'custom', title: 'Ketik Sendiri...', emoji: '✍️' }
+                ].map(opt => (
                   <button
-                    key={val}
+                    key={opt.id}
                     type="button"
-                    onClick={() => setClipDuration(val)}
+                    onClick={() => setMomentType(opt.id)}
                     disabled={isProcessing}
                     style={{
-                      padding: '6px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid ' + (clipDuration === val ? '#ff0000' : 'rgba(255, 255, 255, 0.1)'),
-                      background: clipDuration === val ? 'rgba(255, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                      color: clipDuration === val ? '#fff' : '#9ca3af',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid ' + (momentType === opt.id ? '#ff0000' : 'rgba(255, 255, 255, 0.1)'),
+                      background: momentType === opt.id ? 'rgba(255, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                      color: '#fff',
                       cursor: isProcessing ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
-                      fontWeight: clipDuration === val ? '600' : '400'
+                      textAlign: 'left'
                     }}
                   >
-                    {val < 60 ? `${val} Detik` : `${val/60} Menit`}
+                    <span style={{ fontSize: '18px' }}>{opt.emoji}</span>
+                    <span style={{ fontSize: '13px', fontWeight: momentType === opt.id ? '600' : '400' }}>{opt.title}</span>
                   </button>
                 ))}
+              </div>
+
+              {momentType === 'custom' && (
+                <div style={{ marginTop: '12px' }} className="animate-fade-in-up">
+                  <input
+                    type="text"
+                    placeholder="Masukkan prompt kustom untuk momen AI (contoh: momen memotivasi, tips sukses, dll)"
+                    value={customMoment}
+                    onChange={(e) => setCustomMoment(e.target.value)}
+                    disabled={isProcessing}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      background: 'rgba(0, 0, 0, 0.2)',
+                      color: '#fff',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="duration-input-container" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+              <div>
+                <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#fff', margin: '0 0 4px 0' }}>Range Durasi Video Clip</h3>
+                <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>Masukkan batas maksimal durasi klip (AI akan menyesuaikan pemotongan agar pas saat berhenti berbicara).</p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="number"
+                  min="5"
+                  max="300"
+                  value={clipDuration}
+                  onChange={(e) => setClipDuration(Math.max(1, Number(e.target.value)))}
+                  disabled={isProcessing}
+                  style={{
+                    width: '100px',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: '#fff',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    outline: 'none',
+                    textAlign: 'center',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                <span style={{ fontSize: '14px', color: '#9ca3af', fontWeight: '500' }}>Detik</span>
               </div>
             </div>
 

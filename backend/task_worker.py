@@ -144,10 +144,74 @@ def call_gemini_with_rotation(func, *args, **kwargs):
                 last_err = e
                 continue
     raise last_err if last_err else Exception("Seluruh API Key Gemini gagal.")
+def adjust_boundaries_to_transcript(start_time, end_time, transcript, max_duration):
+    if not transcript:
+        return start_time, end_time
+    
+    try:
+        sorted_trans = sorted(transcript, key=lambda x: float(x.get('start', 0)))
+    except Exception:
+        return start_time, end_time
+        
+    if not sorted_trans:
+        return start_time, end_time
+        
+    # Temukan segmen transkrip yang paling dekat dengan start_time
+    best_start_idx = 0
+    min_start_diff = float('inf')
+    for idx, item in enumerate(sorted_trans):
+        try:
+            s = float(item.get('start', 0))
+        except (ValueError, TypeError):
+            continue
+        diff = abs(s - start_time)
+        if diff < min_start_diff:
+            min_start_diff = diff
+            best_start_idx = idx
+            
+    # Temukan segmen transkrip yang paling dekat dengan end_time (harus >= start segment)
+    best_end_idx = best_start_idx
+    min_end_diff = float('inf')
+    for idx in range(best_start_idx, len(sorted_trans)):
+        item = sorted_trans[idx]
+        try:
+            s = float(item.get('start', 0))
+            d = float(item.get('duration', 0))
+            e = s + d
+        except (ValueError, TypeError):
+            continue
+        diff = abs(e - end_time)
+        if diff < min_end_diff:
+            min_end_diff = diff
+            best_end_idx = idx
+            
+    try:
+        adj_start = float(sorted_trans[best_start_idx].get('start', 0))
+        adj_end = float(sorted_trans[best_end_idx].get('start', 0)) + float(sorted_trans[best_end_idx].get('duration', 0))
+    except Exception:
+        return start_time, end_time
+        
+    # Sesuaikan durasi agar tidak melebihi max_duration
+    actual_duration = adj_end - adj_start
+    if actual_duration > max_duration and best_end_idx > best_start_idx:
+        while best_end_idx > best_start_idx:
+            best_end_idx -= 1
+            try:
+                temp_end = float(sorted_trans[best_end_idx].get('start', 0)) + float(sorted_trans[best_end_idx].get('duration', 0))
+                if temp_end - adj_start <= max_duration:
+                    adj_end = temp_end
+                    break
+            except Exception:
+                pass
+                
+    if adj_end - adj_start > max_duration:
+        adj_end = adj_start + max_duration
+        
+    return round(adj_start, 2), round(adj_end, 2)
 
 def main():
     if len(sys.argv) < 8:
-        print("Usage: python task_worker.py <task_id> <url> <clip_duration> <layout_mode> <username> <with_subtitle> <base_url>")
+        print("Usage: python task_worker.py <task_id> <url> <clip_duration> <layout_mode> <username> <with_subtitle> <base_url> [moment_type] [custom_moment]")
         sys.exit(1)
         
     task_id = sys.argv[1]
@@ -157,6 +221,8 @@ def main():
     username = sys.argv[5]
     with_subtitle = sys.argv[6].lower() == 'true'
     base_url = sys.argv[7]
+    moment_type = sys.argv[8] if len(sys.argv) > 8 else 'default'
+    custom_moment = sys.argv[9] if len(sys.argv) > 9 else ''
     
     users_file = os.path.join(os.path.dirname(__file__), 'users.json')
     
@@ -274,20 +340,27 @@ def main():
             fetched_transcript_data = None
             audio_bypass_mode = True
             
-        # Determine target number of clips based on duration
-        if clip_duration == 6:
-            num_clips_target = 15
-        elif clip_duration == 15:
-            num_clips_target = 10
+        # Determine target number of clips (locked at 10 as per user request)
+        num_clips_target = 10
+
+        # Define moment description for Gemini system prompt
+        if moment_type == 'lucu':
+            moment_desc = "momen LUCU (humor, lelucon, tawa meledak, atau kejadian jenaka/konyol)"
+        elif moment_type == 'horor':
+            moment_desc = "momen HOROR (kejadian menyeramkan, menakutkan, menegangkan, cerita mistis/hantu, atau teriakan ketakutan)"
+        elif moment_type == 'serius_marah':
+            moment_desc = "momen SERIUS DAN MARAH (perdebatan panas, kemarahan, nada bicara tinggi/serius, tensi tinggi, konfrontasi, atau emosi marah)"
+        elif moment_type == 'custom' and custom_moment:
+            moment_desc = f"momen mengenai: '{custom_moment}'"
         else:
-            num_clips_target = 6
+            moment_desc = "momen EMOSIONAL TERKUAT, MENARIK, PANAS, atau KONTROVERSIAL"
 
         # Step 3: Analyze with Gemini AI
         base_rules = f"""
         ATURAN PENTING & MUTLAK:
         1. LEWATI (HINDARI) 3 Menit Pertama Video! (Jangan memberi klip dari detik 0-180 karena itu berisi opening/basa-basi). TAPI jika total durasi video pendek (di bawah 10 menit) atau Anda kesulitan menemukan klip yang cukup, Anda diperbolehkan mengambil dari detik 0.
-        2. Cari momen EMOSIONAL TERKUAT: perdebatan panas, kemarahan, tawa meledak, kalimat hiperbola, atau pernyataan yang sangat menantang dan kontroversial.
-        3. Durasi masing-masing klip HARUS masuk akal, persis {clip_duration} detik, potongan rapi, hindari kalimat yang terpotong di tengah-tengah.
+        2. Cari {moment_desc} pada video.
+        3. Durasi masing-masing klip HARUS masuk akal, maksimal/target sekitar {clip_duration} detik. PASTIKAN pemotongan video pas ketika pembicaraan/perkataan berhenti atau saat jeda sunyi (diam), jangan pernah memotong di tengah-tengah kalimat atau saat orang masih berbicara.
         4. Balas HANYA dengan JSON valid dalam format array ini (WAJIB menghasilkan TEPAT {num_clips_target} item JSON, tidak boleh kurang):
         [
           {{
@@ -295,14 +368,14 @@ def main():
             "start_time": 300,
             "end_time": {300 + clip_duration},
             "score": "99/100",
-            "reason": "Sangat marah dan bernada tinggi"
+            "reason": "Mendeskripsikan alasan pemilihan klip sesuai momen yang diminta"
           }}
         ]
-        Jika Anda kesulitan menemukan momen emosional yang pas, Anda WAJIB melengkapinya dengan momen menarik atau edukatif lainnya hingga mencapai TEPAT {num_clips_target} klip. Jangan pernah mengembalikan kurang dari {num_clips_target} klip!
+        Jika Anda kesulitan menemukan momen yang pas, Anda WAJIB melengkapinya dengan momen menarik lainnya hingga mencapai TEPAT {num_clips_target} klip. Jangan pernah mengembalikan kurang dari {num_clips_target} klip!
         """
         
-        sys_prompt_text = f"Kamu adalah spesialis pemotong video TikTok. Berdasarkan teks berikut, temukan dan hasilkan TEPAT {num_clips_target} potongan (durasi {clip_duration} detik) paling EMOSIONAL, PANAS, atau HIPERBOLA.\n" + base_rules
-        sys_prompt_audio = f"Kamu adalah spesialis pemotong video TikTok. DENGARKAN seluruh audio ini dan temukan serta hasilkan TEPAT {num_clips_target} potongan (durasi {clip_duration} detik) paling EMOSIONAL, PANAS, atau HIPERBOLA hanya dari mendengarkan nada suaranya!\n" + base_rules
+        sys_prompt_text = f"Kamu adalah spesialis pemotong video TikTok. Berdasarkan teks berikut, temukan dan hasilkan TEPAT {num_clips_target} potongan (durasi maksimal {clip_duration} detik) untuk {moment_desc}.\n" + base_rules
+        sys_prompt_audio = f"Kamu adalah spesialis pemotong video TikTok. DENGARKAN seluruh audio ini dan temukan serta hasilkan TEPAT {num_clips_target} potongan (durasi maksimal {clip_duration} detik) untuk {moment_desc} hanya dari mendengarkan nada suaranya!\n" + base_rules
         
         original_video_title = info.get('title', 'Video Klip')
         original_video_desc = info.get('description', '')
@@ -492,14 +565,28 @@ def main():
         for idx, clip in enumerate(ai_results):
             cid = f"{v_id}_{idx}"
             
-            # Ensure clip duration matches requested duration
-            duration = clip.get('end_time', 10) - clip.get('start_time', 0)
-            if duration != clip_duration:
-                clip['end_time'] = clip['start_time'] + clip_duration
+            # Get times from AI
+            try:
+                start_t = float(clip.get('start_time', 0))
+                end_t = float(clip.get('end_time', start_t + clip_duration))
+            except Exception:
+                start_t = 0
+                end_t = clip_duration
                 
-            m = clip_duration // 60
-            s = clip_duration % 60
-            duration_str = f"{m:02d}:{s:02d}" if clip_duration >= 60 else f"00:{clip_duration:02d}"
+            # Align boundaries using transcript to avoid cutting mid-speech
+            if fetched_transcript_data:
+                start_t, end_t = adjust_boundaries_to_transcript(start_t, end_t, fetched_transcript_data, clip_duration)
+            else:
+                if end_t - start_t > clip_duration:
+                    end_t = start_t + clip_duration
+            
+            clip['start_time'] = start_t
+            clip['end_time'] = end_t
+            duration = end_t - start_t
+            
+            m = int(duration) // 60
+            s = int(duration) % 60
+            duration_str = f"{m:02d}:{s:02d}" if duration >= 60 else f"00:{int(duration):02d}"
             
             # Update status with current progress
             progress_val = 55 + int((idx / num_clips) * 40)

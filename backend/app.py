@@ -678,6 +678,8 @@ def process_video():
     clip_duration = int(data.get('clip_duration', 30))
     layout_mode = data.get('layout_mode', 'auto_magic')
     username = data.get('username')
+    moment_type = data.get('moment_type', 'default')
+    custom_moment = data.get('custom_moment', '')
     
     if not url:
         return jsonify({"error": "URL is required"}), 400
@@ -742,7 +744,9 @@ def process_video():
             layout_mode,
             username,
             str(with_subtitle),
-            base_url
+            base_url,
+            moment_type,
+            custom_moment
         ])
         
         return jsonify({"task_id": task_id}), 202
